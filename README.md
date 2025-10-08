@@ -1,12 +1,15 @@
 
 ---
 
-## ✅ Fixed `README.md`
+## 📄 `README.md`
 
 ```markdown
 # Camphish - Auto Image Capture with Meta
 
-Camphish is a **Flask-based project** that automatically captures images from the device camera (with permission) and uploads them to a server along with metadata such as **location, timestamp, user agent, and IP information**. The project is designed for educational or testing purposes and requires explicit user permission to access the camera and location.
+
+Camphish is a **Flask-based project** that automatically captures images from the device camera (with permission)
+and uploads them to a server along with metadata such as **location, timestamp, user agent, and IP information**.  
+The project is designed for **educational or testing purposes** and requires explicit user permission to access the camera and location.
 
 ---
 
@@ -55,20 +58,20 @@ pip install flask requests
 
 ## Setup & Run
 
-### Clone the repository:
+### 1️⃣ Clone the repository
 
 ```bash
 git clone https://github.com/YourUsername/AutoCam.git
 cd AutoCam
 ```
 
-### Run the Flask server:
+### 2️⃣ Run the Flask server
 
 ```bash
 python app.py
 ```
 
-### Open browser:
+### 3️⃣ Open browser
 
 ```
 http://127.0.0.1:5000
@@ -76,6 +79,37 @@ http://127.0.0.1:5000
 
 * Allow camera and location permissions to start automatic capture.
 * Captured images and metadata files will be saved in the `captures/` folder.
+
+---
+
+## Access from Internet using Ngrok
+
+Ngrok allows you to forward your local Flask server (default port 5000) to the internet so that you can access it from any device.
+
+### Steps:
+
+1. **Download Ngrok**:
+   [https://ngrok.com/download](https://ngrok.com/download)
+   Unzip and place it in a folder.
+
+2. **Expose your Flask server**:
+   Run this in a new terminal while your Flask server is running:
+
+```bash
+ngrok http 5000
+```
+
+3. **Copy the Forwarding URL**:
+   Ngrok will display something like:
+
+```
+Forwarding   https://abcd1234.ngrok.io -> http://127.0.0.1:5000
+```
+
+* Open this `https://abcd1234.ngrok.io` link on any device or mobile browser.
+* Your Camphish project will now be accessible publicly.
+
+> ⚠️ Free Ngrok URLs change every time you start. Use paid plan for fixed URL.
 
 ---
 
@@ -111,5 +145,6 @@ This project is **MIT Licensed**. You are free to use, modify, and distribute it
 **Aman Pandit**
 
 * GitHub: [https://github.com/AmanPandit](https://github.com/technicalamanpandit)
-* Email: [aman@example.com](mailto:amanktindia.com)
+* Email: [aman@example.com](mailto:amanktindia@gmail.com)
+
 
